@@ -2,6 +2,7 @@ package com.educonnect.api.service;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.educonnect.api.dto.CambiarPasswordDTO;
@@ -16,10 +17,15 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     public Usuario guardar(Usuario usuario) {
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             throw new DuplicadoException("El email: '" + usuario.getEmail() + "' ya esta asociado a otro usuario");
         }
+        String passEncriptada = passwordEncoder.encode(usuario.getPassword());
+        usuario.setPassword(passEncriptada);
         usuario.setActivo(true);
         return usuarioRepository.save(usuario);
     }
@@ -58,10 +64,11 @@ public class UsuarioService {
         if (dto.getPasswordNueva() == null || dto.getPasswordNueva().isBlank()) {
             throw new RuntimeException("La nueva contraseña no puede estar vacía");
         }
-        if (!usuario.getPassword().equals(dto.getPasswordActual())) {
+        if (usuario != null && passwordEncoder.matches(usuario.getPassword(), dto.getPasswordActual())) {
             throw new RuntimeException("La contraseña actual no es correcta");
         }
-        usuario.setPassword(dto.getPasswordNueva());
+        String passEncriptada = passwordEncoder.encode(dto.getPasswordNueva());
+        usuario.setPassword(passEncriptada);
     }
 
     @Transactional
@@ -77,5 +84,13 @@ public class UsuarioService {
         usuario.setBiografia(null);
         usuario.setHabilidades(null);
         usuarioRepository.save(usuario);
+    }
+
+    public Usuario validarCredenciales(String email, String password) {
+        Usuario usuario = usuarioRepository.findByEmail(email).filter(u -> u.getActivo()).orElse(null);
+        if(usuario != null && passwordEncoder.matches(password, usuario.getPassword())){
+            return usuario;
+        }
+        return null;
     }
 }

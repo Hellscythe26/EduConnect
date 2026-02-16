@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.educonnect.api.entity.Cita;
+import com.educonnect.api.entity.DuplicadoException;
 import com.educonnect.api.entity.EstadoCita;
 import com.educonnect.api.repository.CitaRepository;
 
@@ -15,6 +16,16 @@ public class CitaService {
     private CitaRepository citaRepository;
 
     public Cita guardar(Cita cita) {
+        boolean yaExiste = citaRepository.existsByMentorAndFechaHoraCitaAndEstadoNot(cita.getMentor(),
+                cita.getFechaHoraCita(), cita.getEstado());
+        if (yaExiste) {
+            throw new DuplicadoException(
+                    "El tutor ya tiene una cita programada para la fecha: " + cita.getFechaHoraCita());
+        }
+        if (citaRepository.existsByEstudianteAndFechaHoraCitaAndEstadoNot(cita.getEstudiante(), cita.getFechaHoraCita(),
+                EstadoCita.CANCELADA)) {
+            throw new DuplicadoException("Ya tienes otra cita programada a esa misma hora.");
+        }
         cita.setEstado(EstadoCita.PENDIENTE);
         return citaRepository.save(cita);
     }
