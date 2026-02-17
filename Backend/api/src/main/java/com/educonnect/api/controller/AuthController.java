@@ -28,7 +28,7 @@ public class AuthController {
         Usuario usuario = usuarioService.validarCredenciales(dto.getEmail(), dto.getPassword());
         if(usuario != null) {
             String token = jwtUtil.generateToken(usuario.getEmail());
-            return ResponseEntity.ok(new AuthResponse(token));
+            return ResponseEntity.ok(new AuthResponse(token, usuario.getUsuarioID(), usuario.getNombre(), usuario.getEmail(), usuario.getRol().getTipo()));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales incorrectas");
     }

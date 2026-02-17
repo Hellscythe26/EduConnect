@@ -39,12 +39,23 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuario con ID: " + id + " no encontrado"));
     }
 
+    public Usuario buscarPorEmail(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email).filter(u -> u.getActivo()).orElse(null);
+        if (usuario != null) {
+            return usuario;
+        }
+        return null;
+    }
+
     @Transactional
     public Usuario actualizarUsuario(Long id, UsuarioDTO dto) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario con ID: " + id + " no encontrado"));
-        if (usuarioRepository.existsByEmail(dto.getEmail())) {
-            throw new DuplicadoException("El email: '" + dto.getEmail() + "' ya está asociado a otro usuario");
+        if (dto.getEmail() != null && !dto.getEmail().equalsIgnoreCase(usuario.getEmail())) {
+            if (usuarioRepository.existsByEmail(dto.getEmail())) {
+                throw new DuplicadoException("El email: '" + dto.getEmail() + "' ya está asociado a otro usuario");
+            }
+            usuario.setEmail(dto.getEmail());
         }
         if (dto.getNombre() != null)
             usuario.setNombre(dto.getNombre());
@@ -64,7 +75,7 @@ public class UsuarioService {
         if (dto.getPasswordNueva() == null || dto.getPasswordNueva().isBlank()) {
             throw new RuntimeException("La nueva contraseña no puede estar vacía");
         }
-        if (usuario != null && passwordEncoder.matches(usuario.getPassword(), dto.getPasswordActual())) {
+        if (!passwordEncoder.matches(dto.getPasswordActual(), usuario.getPassword())) {
             throw new RuntimeException("La contraseña actual no es correcta");
         }
         String passEncriptada = passwordEncoder.encode(dto.getPasswordNueva());
@@ -88,7 +99,7 @@ public class UsuarioService {
 
     public Usuario validarCredenciales(String email, String password) {
         Usuario usuario = usuarioRepository.findByEmail(email).filter(u -> u.getActivo()).orElse(null);
-        if(usuario != null && passwordEncoder.matches(password, usuario.getPassword())){
+        if (usuario != null && passwordEncoder.matches(password, usuario.getPassword())) {
             return usuario;
         }
         return null;

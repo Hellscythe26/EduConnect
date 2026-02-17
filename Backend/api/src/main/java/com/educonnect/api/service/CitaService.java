@@ -34,6 +34,10 @@ public class CitaService {
         return citaRepository.findAll();
     }
 
+    public List<Cita> listarCitasPorId(Long id) {
+        return citaRepository.findByEstudianteUsuarioIDOrMentorUsuarioID(id, id);
+    }
+
     public Cita buscarPorId(Long id) {
         return citaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cita con ID: " + id + " no encontrada"));

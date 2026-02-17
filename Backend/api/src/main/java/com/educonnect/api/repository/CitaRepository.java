@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 import com.educonnect.api.entity.Cita;
 import com.educonnect.api.entity.EstadoCita;
 import com.educonnect.api.entity.Usuario;
+import java.util.List;
+
 
 @Repository
 public interface CitaRepository extends JpaRepository<Cita, Long> {
@@ -13,5 +15,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     boolean existsByMentorAndFechaHoraCitaAndEstadoNot(Usuario mentor, LocalDateTime fechaHoraCita, EstadoCita cancelada);
 
     boolean existsByEstudianteAndFechaHoraCitaAndEstadoNot(Usuario estudiante, LocalDateTime fechaHoraCita,
-            EstadoCita cancelada);
+        EstadoCita cancelada);
+
+    List<Cita> findByEstudianteUsuarioIDOrMentorUsuarioID(Long estuadiateID, Long mentorID);
 }

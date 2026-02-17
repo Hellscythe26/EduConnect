@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Si quieres aplicar el fondo gris de antes, hazlo así: */
+body {
+  background-color: #f9fafb; /* Esto es gray-50 */
+}
